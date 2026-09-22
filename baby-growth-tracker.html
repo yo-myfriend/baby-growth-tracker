@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#203b36" />
+  <title>Baby Growth Tracker</title>
+  <style>
+    :root { --ink:#203b36; --muted:#61716c; --paper:#fffdf8; --cream:#f6f0e5; --line:#dfd8ca; --coral:#d76b58; --sage:#94ad8b; --sun:#edc774; --shadow:0 18px 50px rgba(32,59,54,.12); }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:linear-gradient(145deg,#fcf5ea 0%,#edf2e9 46%,#f9f0e9 100%); font:16px/1.5 ui-rounded,"Avenir Next",Avenir,"Segoe UI",sans-serif; min-height:100vh; }
+    main { width:min(1040px,calc(100% - 32px)); margin:0 auto; padding:42px 0 64px; }
+    .hero { display:grid; grid-template-columns:1fr auto; gap:24px; align-items:end; margin:0 0 24px; }
+    h1 { margin:0; font-family:Georgia,serif; font-size:clamp(2.3rem,5vw,4rem); line-height:1; letter-spacing:-.045em; }
+    h1 em { color:var(--coral); font-style:normal; }
+    .eyebrow { color:var(--coral); font-size:.78rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin:0 0 9px; }
+    .hero p { max-width:560px; margin:14px 0 0; color:var(--muted); }
+    .seed { font-size:54px; line-height:1; filter:drop-shadow(0 8px 8px rgba(32,59,54,.15)); }
+    .card { background:rgba(255,253,248,.91); border:1px solid rgba(223,216,202,.9); box-shadow:var(--shadow); border-radius:24px; }
+    .setup { padding:22px; display:grid; grid-template-columns:1fr 160px auto; gap:14px; align-items:end; }
+    label { display:block; color:var(--muted); font-size:.8rem; font-weight:700; letter-spacing:.04em; margin-bottom:6px; }
+    input { appearance:none; width:100%; min-height:48px; border:1px solid var(--line); border-radius:12px; padding:0 12px; color:var(--ink); background:#fffefb; font:inherit; }
+    button { appearance:none; min-height:48px; border:0; border-radius:12px; padding:0 18px; background:var(--ink); color:white; font:700 15px inherit; cursor:pointer; transition:transform .15s ease, background .15s ease; }
+    button:hover { background:#31584f; transform:translateY(-1px); }
+    .empty { padding:58px 24px; text-align:center; }
+    .empty .tiny { font-size:46px; }
+    .empty h2 { font-family:Georgia,serif; margin:12px 0 4px; font-size:1.7rem; }
+    .empty p { color:var(--muted); margin:0 auto; max-width:420px; }
+    #tracker { display:none; }
+    .headline { padding:26px; display:grid; grid-template-columns:1.3fr .8fr; gap:22px; align-items:center; }
+    .week-label { color:var(--coral); font-size:.82rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+    .age { font-family:Georgia,serif; font-size:clamp(2.25rem,5vw,4rem); line-height:1.05; margin:4px 0; letter-spacing:-.04em; }
+    .due { color:var(--muted); margin:0; }
+    .size-box { background:var(--cream); border-radius:18px; padding:18px; text-align:center; }
+    .size-box .emoji { font-size:44px; line-height:1; }
+    .size-box strong { display:block; font-size:1.2rem; margin-top:4px; }
+    .size-box span { display:block; color:var(--muted); font-size:.88rem; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:16px 0; }
+    .stat { padding:18px; }
+    .stat small { display:block; color:var(--muted); font-weight:700; letter-spacing:.04em; }
+    .stat strong { display:block; font-family:Georgia,serif; font-size:1.6rem; margin-top:3px; }
+    .section-title { margin:30px 0 12px; font-family:Georgia,serif; font-size:1.55rem; }
+    .timeline { position:relative; display:grid; gap:10px; }
+    .timeline::before { content:""; position:absolute; left:27px; top:26px; bottom:26px; width:2px; background:var(--line); }
+    .milestone { position:relative; z-index:1; display:grid; grid-template-columns:56px 1fr auto; gap:15px; align-items:center; padding:13px 16px 13px 0; border-radius:16px; }
+    .milestone.current { background:#e8efe3; }
+    .milestone.past { opacity:.52; }
+    .dot { width:18px; height:18px; margin-left:19px; border:3px solid var(--paper); border-radius:50%; background:var(--sage); box-shadow:0 0 0 1px rgba(32,59,54,.1); }
+    .current .dot { background:var(--coral); transform:scale(1.22); }
+    .milestone h3 { margin:0; font-size:1rem; }
+    .milestone p { margin:1px 0 0; color:var(--muted); font-size:.88rem; }
+    .measure { text-align:right; white-space:nowrap; }
+    .measure strong { display:block; font-size:.9rem; }
+    .measure span { color:var(--muted); font-size:.77rem; }
+    .note { margin-top:26px; padding:17px 18px; color:var(--muted); font-size:.84rem; }
+    .actions { display:flex; justify-content:flex-end; margin-top:12px; }
+    .text-button { min-height:auto; padding:8px 0; color:var(--muted); background:transparent; font-size:.85rem; text-decoration:underline; }
+    .text-button:hover { background:transparent; color:var(--ink); transform:none; }
+    @media (max-width:650px) { main{width:min(100% - 24px,1040px);padding-top:28px}.hero{grid-template-columns:1fr}.seed{display:none}.setup{grid-template-columns:1fr 1fr}.setup button{grid-column:1/-1}.headline{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.milestone{grid-template-columns:45px 1fr}.timeline::before{left:22px}.dot{margin-left:14px}.measure{grid-column:2;text-align:left}.hero p{font-size:.95rem} }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div><p class="eyebrow">A little record of a big adventure</p><h1>Baby <em>growth</em><br>tracker</h1><p>Follow your baby’s estimated growth from the first day of the last menstrual period.</p></div>
+      <div class="seed" aria-hidden="true">🌱</div>
+    </header>
+    <section class="setup card" aria-label="Pregnancy dates">
+      <div><label for="lmp">First day of last period</label><input id="lmp" type="date" required></div>
+      <div><label for="cycle">Usual cycle length</label><input id="cycle" type="number" inputmode="numeric" min="20" max="45" value="28" aria-describedby="cycle-help"></div>
+      <button id="save" type="button">See our timeline</button>
+    </section>
+    <div id="error" role="alert" style="color:#b14232;margin:8px 4px;font-size:.88rem"></div>
+    <section id="empty" class="empty card" aria-live="polite"><div class="tiny">🫶</div><h2>Ready when you are</h2><p>Add the first day of the last period above to begin your shared timeline.</p></section>
+    <section id="tracker" aria-live="polite">
+      <div class="headline card">
+        <div><div class="week-label" id="weekLabel">Today</div><div class="age" id="age">—</div><p class="due" id="due">—</p></div>
+        <div class="size-box"><div class="emoji" id="emoji">✨</div><strong id="compare">Growing beautifully</strong><span id="measure">Estimated size appears here</span></div>
+      </div>
+      <div class="stats">
+        <div class="stat card"><small>Days together</small><strong id="days">—</strong></div>
+        <div class="stat card"><small>Trimester</small><strong id="trimester">—</strong></div>
+        <div class="stat card"><small>Countdown</small><strong id="countdown">—</strong></div>
+      </div>
+      <h2 class="section-title">The weeks ahead</h2>
+      <div id="timeline" class="timeline" aria-label="Weekly growth timeline"></div>
+      <div class="note card">Size estimates are general guides, not measurements of your baby. Pregnancy dating and growth are best confirmed by your obstetric clinician, especially if cycles are irregular or an ultrasound gives a different date.</div>
+      <div class="actions"><button id="clear" class="text-button" type="button">Clear saved dates</button></div>
+    </section>
+  </main>
+  <script>
+    const growth = [
+      [4,'Poppy seed','🌰','about 2 mm'],[5,'Sesame seed','⚪','about 2 mm'],[6,'Lentil','🫘','about 6 mm'],[7,'Blueberry','🫐','about 1 cm'],[8,'Raspberry','🍓','about 1.6 cm'],[9,'Grape','🍇','about 2.3 cm'],[10,'Strawberry','🍓','about 3.1 cm'],[11,'Lime','🍋','about 4.1 cm'],[12,'Plum','🟣','about 5.4 cm'],[13,'Lemon','🍋','about 7.4 cm'],[14,'Peach','🍑','about 8.7 cm'],[15,'Apple','🍎','about 10 cm'],[16,'Avocado','🥑','about 12 cm'],[17,'Pear','🍐','about 13 cm'],[18,'Bell pepper','🫑','about 14 cm'],[19,'Mango','🥭','about 15 cm'],[20,'Banana','🍌','about 16 cm'],[21,'Endive','🥬','about 27 cm'],[22,'Papaya','🧡','about 28 cm'],[23,'Grapefruit','🍊','about 29 cm'],[24,'Ear of corn','🌽','about 30 cm'],[25,'Rutabaga','🟤','about 34 cm'],[26,'Scallion','🧅','about 35 cm'],[27,'Cauliflower','🥦','about 36 cm'],[28,'Eggplant','🍆','about 37 cm'],[29,'Butternut squash','🎃','about 39 cm'],[30,'Cabbage','🥬','about 40 cm'],[31,'Coconut','🥥','about 41 cm'],[32,'Jicama','🫚','about 42 cm'],[33,'Pineapple','🍍','about 43 cm'],[34,'Cantaloupe','🍈','about 45 cm'],[35,'Honeydew melon','🍈','about 46 cm'],[36,'Romaine lettuce','🥬','about 47 cm'],[37,'Swiss chard','🥬','about 48 cm'],[38,'Leek','🧅','about 49 cm'],[39,'Mini watermelon','🍉','about 50 cm'],[40,'Small pumpkin','🎃','about 51 cm']
+    ];
+    const $ = id => document.getElementById(id);
+    const lmp = $('lmp'), cycle = $('cycle'), tracker = $('tracker'), empty = $('empty');
+    const day = 86400000;
+    const formatDate = d => new Intl.DateTimeFormat(undefined,{month:'long',day:'numeric',year:'numeric'}).format(d);
+    const parseDate = v => { const [y,m,d]=v.split('-').map(Number); return new Date(y,m-1,d,12); };
+    const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    function getEntry(week) { return growth.reduce((best,row)=>Math.abs(row[0]-week)<Math.abs(best[0]-week)?row:best,growth[0]); }
+    function render() {
+      $('error').textContent=''; const saved = localStorage.getItem('baby-growth-lmp'); const savedCycle = localStorage.getItem('baby-growth-cycle');
+      if (!saved) { tracker.style.display='none'; empty.style.display='block'; return; }
+      lmp.value=saved; cycle.value=savedCycle||28; const start=parseDate(saved), now=new Date(); now.setHours(12,0,0,0); const elapsed=Math.floor((now-start)/day);
+      if (elapsed < 0) { $('error').textContent='That date is in the future—please check it.'; tracker.style.display='none'; empty.style.display='block'; return; }
+      const wholeWeeks=Math.floor(elapsed/7), days=elapsed%7, due=new Date(start); due.setDate(due.getDate()+280+(Number(cycle.value)-28)); const remain=Math.ceil((due-now)/day);
+      const entry=getEntry(Math.max(4,Math.min(40,wholeWeeks))); const trimester=wholeWeeks<14?'First':wholeWeeks<28?'Second':'Third';
+      $('weekLabel').textContent=wholeWeeks>40?'Beyond 40 weeks':'Today'; $('age').textContent=`${wholeWeeks} weeks, ${days} days`; $('due').textContent=`Estimated due date: ${formatDate(due)}`; $('emoji').textContent=entry[2]; $('compare').textContent=`About a ${entry[1]}`; $('measure').textContent=entry[3]; $('days').textContent=`${elapsed} days`; $('trimester').textContent=trimester; $('countdown').textContent=remain>=0?`${remain} days`:`${Math.abs(remain)} days past`;
+      $('timeline').innerHTML=growth.filter(r=>r[0]>=Math.max(4,wholeWeeks-4)&&r[0]<=Math.min(40,wholeWeeks+8)).map(r=>{ const date=new Date(start); date.setDate(date.getDate()+r[0]*7); const state=r[0]<wholeWeeks?'past':r[0]===wholeWeeks?'current':''; return `<article class="milestone ${state}"><div class="dot" aria-hidden="true"></div><div><h3>Week ${r[0]} · ${r[1]}</h3><p>${formatDate(date)}</p></div><div class="measure"><strong>${r[3]}</strong><span>estimated length</span></div></article>`; }).join('');
+      empty.style.display='none'; tracker.style.display='block';
+    }
+    $('save').addEventListener('click',()=>{ if(!lmp.value){$('error').textContent='Please add the first day of the last period.';return;} const dt=parseDate(lmp.value), now=new Date(); if(dt>now){$('error').textContent='That date is in the future—please check it.';return;} localStorage.setItem('baby-growth-lmp',lmp.value); localStorage.setItem('baby-growth-cycle',cycle.value); render(); });
+    $('clear').addEventListener('click',()=>{localStorage.removeItem('baby-growth-lmp');localStorage.removeItem('baby-growth-cycle');lmp.value='';cycle.value=28;render();});
+    const saved=localStorage.getItem('baby-growth-lmp'); if(saved){lmp.value=saved;cycle.value=localStorage.getItem('baby-growth-cycle')||28;} render();
+  </script>
+</body>
+</html>
